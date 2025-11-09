@@ -39,7 +39,7 @@ jobs:
             sudo rm -f /srv/tsa/freight-service/app.jar
             sudo mkdir -p /srv/tsa/freight-service
 
-      # 5️⃣ Upload new jar directly to /srv/tsa/freight-service/app.jar
+      # 5️⃣ Upload new jar directly to /srv/tsa/freight-service/app.jar 
       - name: Upload JAR via SCP
         uses: appleboy/scp-action@v0.1.7
         with:
