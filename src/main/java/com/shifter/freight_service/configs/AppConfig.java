@@ -20,10 +20,13 @@ public class AppConfig {
         logger.info("Loaded OpenAI API Key: {}", apiKey != null ? "FOUND" : "NOT FOUND");
 
         // Log DB variables
-        String dbUrl = dotenv.get("DB_URL");
-        String dbUsername = dotenv.get("DB_USERNAME");
-        String dbPassword = dotenv.get("DB_PASSWORD");
-        logger.info("DB_URL: {}", dbUrl);
+         String dbUrl = dotenv.get("DB_URL_FREIGHT");
+         String dbUsername = dotenv.get("DB_USERNAME");
+         String dbPassword = dotenv.get("DB_PASSWORD");
+//        String dbUrl = "jdbc:postgresql://localhost:5432/tsa_freight_db";
+//        String dbUsername = "shifter";
+//        String dbPassword = "sh!fter";
+        logger.info("DB_URL_FREIGHT: {}", dbUrl);
         logger.info("DB_USERNAME: {}", dbUsername);
         logger.info("DB_PASSWORD: {}", dbPassword != null ? "FOUND" : "NOT FOUND");
 

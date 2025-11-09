@@ -5,12 +5,10 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 
 @Entity
-@Table(name = "offers", indexes = {
-        @Index(name = "idx_offer_request", columnList = "request_id"),
-        @Index(name = "idx_offer_carrier", columnList = "carrier_user_id")
-})
+@Table(name = "offers")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -26,8 +24,13 @@ public class Offer extends BaseEntity {
     private Request request;
 
     private BigDecimal amount;
-    private String message;
+    private String note;
+
+    @OneToMany(mappedBy = "offer", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Vehicle> vehicles;
 
     @Enumerated(EnumType.STRING)
-    private OfferStatus status; // e.g., PENDING, ACCEPTED, REJECTED
+    @Column(nullable = false)
+    private OfferStatus status = OfferStatus.PENDING;
+
 }

@@ -15,5 +15,7 @@ public class Position {
     private Double latitude;
     private Double longitude;
     private String address;
-    private Instant time;
+
+    @Column(name = "timestamp")
+    private Instant timestamp;
 }

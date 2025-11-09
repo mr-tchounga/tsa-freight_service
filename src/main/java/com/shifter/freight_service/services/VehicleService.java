@@ -1,7 +1,9 @@
 package com.shifter.freight_service.services;
 
+import com.shifter.freight_service.models.Vehicle;
 import com.shifter.freight_service.payloads.responses.AuthUserResponse;
-import com.shifter.freight_service.repositories.ProductRepository;
+import com.shifter.freight_service.payloads.responses.RoleResponse;
+import com.shifter.freight_service.repositories.VehicleRepository;
 import com.shifter.freight_service.utils.Utils;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -16,75 +18,84 @@ import java.util.Optional;
 @Service
 @Transactional
 @AllArgsConstructor
-public class ProductService implements EntityInterface<Product> {
+public class VehicleService implements EntityInterface<Vehicle> {
 
-    private final ProductRepository productRepository;
+    private final VehicleRepository vehicleRepository;
     private Utils utils;
 
     @Override
-    public Optional<Product> findEntityById(Long id, AuthUserResponse user) {
-        Product entity = new Product();
+    public Optional<Vehicle> findEntityById(Long id, AuthUserResponse user) {
+        Vehicle entity = new Vehicle();
         entity.setId(id);
         entity.setVisible(true);
-        entity.setCreatedBy(user.getId());
-        Map<String, Object> nonNullElements = utils.getNonNullProperties(Product.class, entity);
+        if (!user.getRole().getName().equals("ADMIN")) {
+            entity.setOwnerId(user.getId());
+        }
+        Map<String, Object> nonNullElements = utils.getNonNullProperties(Vehicle.class, entity);
         nonNullElements.put("id", id);
         if (!user.getRole().getName().equals("ADMIN")) {
             nonNullElements.put("isVisible", true);
         }
-        List<Product> entities = utils.findAllByCustomQuery(nonNullElements, Product.class);
+        List<Vehicle> entities = utils.findAllByCustomQuery(nonNullElements, Vehicle.class);
         return entities.isEmpty() ? Optional.empty() : Optional.of(entities.getFirst());
     }
 
     @Override
-    public List<Product> findAllEntity(AuthUserResponse user) {
-        Product entity = new Product();
+    public List<Vehicle> findAllEntity(AuthUserResponse user) {
+        Vehicle entity = new Vehicle();
         entity.setVisible(true);
-        entity.setCreatedBy(user.getId());
-        Map<String, Object> nonNullElements = utils.getNonNullProperties(Product.class, entity);
+        if (!user.getRole().getName().equals("ADMIN")) {
+            entity.setOwnerId(user.getId());
+        }
+        Map<String, Object> nonNullElements = utils.getNonNullProperties(Vehicle.class, entity);
         if (!user.getRole().getName().equals("ADMIN")) {
             nonNullElements.put("isVisible", true);
         }
-        return utils.findAllByCustomQuery(nonNullElements, Product.class);
+        return utils.findAllByCustomQuery(nonNullElements, Vehicle.class);
     }
 
     @Override
-    public List<Product> findFilterAllEntity(AuthUserResponse user, Product entity) {
-        entity.setCreatedBy(user.getId());
-        Map<String, Object> nonNullElements = utils.getNonNullProperties(Product.class, entity);
+    public List<Vehicle> findFilterAllEntity(AuthUserResponse user, Vehicle entity) {
+        if (!user.getRole().getName().equals("ADMIN")) {
+            entity.setOwnerId(user.getId());
+        }
+        Map<String, Object> nonNullElements = utils.getNonNullProperties(Vehicle.class, entity);
         if (!user.getRole().getName().equals("ADMIN")) {
             nonNullElements.put("isVisible", true);
         }
-        return utils.findAllByCustomQuery(nonNullElements, Product.class);
+        return utils.findAllByCustomQuery(nonNullElements, Vehicle.class);
     }
 
     @Override
-    public Product addEntity(AuthUserResponse user, Product entity) {
+    public Vehicle addEntity(AuthUserResponse user, Vehicle entity) {
         try {
+//            if  (entity.getOwnerId() == null) {
+//                thr
+//            }
             entity.setCreatedBy(user.getId());
             entity.setCreatedAt(Calendar.getInstance().getTime());
-            return  productRepository.save(entity);
+            return  vehicleRepository.save(entity);
         } catch (Exception e) {
-            throw new RuntimeException("Error adding new product: " + e.getMessage());
+            throw new RuntimeException("Error adding new vehicle: " + e.getMessage());
         }
     }
 
     @Override
-    public Product updateEntity(AuthUserResponse user, Product entity) {
-        Optional<Product> previousEntity = productRepository.findById(entity.getId());
+    public Vehicle updateEntity(AuthUserResponse user, Vehicle entity) {
+        Optional<Vehicle> previousEntity = vehicleRepository.findById(entity.getId());
 
         if (previousEntity.isPresent()) {
             previousEntity.get().setUpdatedBy(user.getId());
             previousEntity.get().setUpdatedAt(Calendar.getInstance().getTime());
-            Map<String, Object> nonNullElements = utils.getNonNullProperties(Product.class, entity);
+            Map<String, Object> nonNullElements = utils.getNonNullProperties(Vehicle.class, entity);
 
             nonNullElements.forEach((key, value) -> {
                 try {
-                    Field field = utils.findFieldInHierarchy(Product.class, key);
+                    Field field = utils.findFieldInHierarchy(Vehicle.class, key);
                     // If not found, try converting 'isVisible' -> 'visible' (common mismatch)
                     if (field == null && key.startsWith("is") && key.length() > 2) {
                         String alt = Character.toLowerCase(key.charAt(2)) + key.substring(3);
-                        field = utils.findFieldInHierarchy(Product.class, alt);
+                        field = utils.findFieldInHierarchy(Vehicle.class, alt);
                     }
                     if (field == null) {
                         throw new NoSuchFieldException(key);
@@ -95,21 +106,21 @@ public class ProductService implements EntityInterface<Product> {
                     throw new RuntimeException("Error updating field: '" + key + "':\n" + e.getMessage());
                 }
             });
-            return productRepository.save(previousEntity.get());
+            return vehicleRepository.save(previousEntity.get());
         } else {
-            throw new RuntimeException("Product with id '" + entity.getId() + "' not found");
+            throw new RuntimeException("Vehicle with id '" + entity.getId() + "' not found");
         }
     }
 
     @Override
     public void deleteEntity(AuthUserResponse user, Long id) {
         try {
-            Product entity = new Product();
+            Vehicle entity = new Vehicle();
             entity.setId(id);
             entity.setVisible(false);
             updateEntity(user, entity);
         } catch (Exception e) {
-            throw new RuntimeException("Error deleting product with id '" + id + "': " + e.getMessage());
+            throw new RuntimeException("Error deleting vehicle with id '" + id + "': " + e.getMessage());
         }
     }
 

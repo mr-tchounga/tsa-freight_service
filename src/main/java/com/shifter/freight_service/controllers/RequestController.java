@@ -1,6 +1,7 @@
 package com.shifter.freight_service.controllers;
 
 import com.shifter.freight_service.clients.AuthServiceClient;
+import com.shifter.freight_service.models.Request;
 import com.shifter.freight_service.payloads.responses.AuthUserResponse;
 import com.shifter.freight_service.services.EntityInterface;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,17 +12,17 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/comment")
+@RequestMapping("/api/v1/request")
 @CrossOrigin
-public class CommentController {
+public class RequestController {
 
     @Autowired
     private AuthServiceClient client;
     @Autowired
-    private EntityInterface<Comment> entityInterface;
+    private EntityInterface<Request> entityInterface;
 
     @GetMapping( {"{id}", ""} )
-    public ResponseEntity<Object> getComment(@RequestHeader("Authorization") String authHeader, @PathVariable(required = false) Long id) {
+    public ResponseEntity<Object> getRequest(@RequestHeader("Authorization") String authHeader, @PathVariable(required = false) Long id) {
         AuthUserResponse user = client.getCurrentUser(authHeader);
 
         if (id == null) {
@@ -31,45 +32,43 @@ public class CommentController {
     }
 
     @PostMapping
-    public ResponseEntity<Object> postComment(@RequestHeader("Authorization") String authHeader, @RequestBody(required = false) Comment comment) {
+    public ResponseEntity<Object> postRequest(@RequestHeader("Authorization") String authHeader, @RequestBody(required = false) Request request) {
         AuthUserResponse user = client.getCurrentUser(authHeader);
 
-        if (comment != null) {
-            if (comment.getId() != null) {
-                return ResponseEntity.ok(entityInterface.findEntityById(comment.getId(), user));
+        if (request != null) {
+            if (request.getId() != null) {
+                return ResponseEntity.ok(entityInterface.findEntityById(request.getId(), user));
             }
-            return ResponseEntity.ok(entityInterface.findFilterAllEntity(user, comment));
+            return ResponseEntity.ok(entityInterface.findFilterAllEntity(user, request));
         }
         return ResponseEntity.ok(entityInterface.findAllEntity(user));
     }
 
     @PostMapping("/new")
-    public ResponseEntity<Object> addComment(@RequestHeader("Authorization") String authHeader, @RequestBody Comment comment) {
+    public ResponseEntity<Object> addRequest(@RequestHeader("Authorization") String authHeader, @RequestBody Request request) {
         AuthUserResponse user = client.getCurrentUser(authHeader);
 
-        return ResponseEntity.ok(entityInterface.addEntity(user, comment));
+        return ResponseEntity.ok(entityInterface.addEntity(user, request));
     }
 
     @PutMapping
-    public ResponseEntity<Object> updateComment(@RequestHeader("Authorization") String authHeader, @RequestBody Comment comment) {
+    public ResponseEntity<Object> updateRequest(@RequestHeader("Authorization") String authHeader, @RequestBody Request request) {
         AuthUserResponse user = client.getCurrentUser(authHeader);
 
-        return ResponseEntity.ok(entityInterface.updateEntity(user, comment));
+        return ResponseEntity.ok(entityInterface.updateEntity(user, request));
     }
 
     @DeleteMapping("/{id}")
-    public Object deleteComment(@RequestHeader("Authorization") String authHeader, @PathVariable Long id) {
+    public Object deleteRequest(@RequestHeader("Authorization") String authHeader, @PathVariable Long id) {
         AuthUserResponse user = client.getCurrentUser(authHeader);
         if  (!entityInterface.findEntityById(id, user).get().isVisible()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
                     "error", "Resource Not Found",
-                    "message", "No Comment found with id " + id
+                    "message", "No Request found with id " + id
             ));
         }
         entityInterface.deleteEntity(user, id);
         return ResponseEntity.ok("Operation successful");
     }
-
-
 
 }

@@ -9,27 +9,31 @@ import java.util.List;
 @Entity
 @Table(name = "chat_messages", indexes = {
         @Index(name = "idx_chat_request", columnList = "request_id"),
-        @Index(name = "idx_chat_sender", columnList = "sender_user_id")
+        @Index(name = "idx_chat_sender", columnList = "sender_id")
 })
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
-public class ChatMessage extends BaseEntity{
+public class ChatMessage extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    // map FK normally so JPA will insert/update request_id
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "request_id", insertable = false, updatable = false)
+    @JoinColumn(name = "request_id")
     private Request request;
+
     @Column(name = "sender_id", nullable = false)
-    private Long senderId = super.getCreatedBy();
+    private Long senderId;
+
     @Column(name = "receiver_id", nullable = false)
     private Long receiverId;
 
+    @Column(columnDefinition = "text")
     private String message;
-
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")

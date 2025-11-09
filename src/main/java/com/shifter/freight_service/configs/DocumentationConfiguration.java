@@ -10,8 +10,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @OpenAPIDefinition(
         info = @Info(
-                title = "Shifter",
-                description = "Shifter api documentation",
+                title = "Freight MicroService",
+                description = "Freight API documentation",
                 version = "1.0.0"
         ),
         servers = {
