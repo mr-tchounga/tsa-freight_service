@@ -1,0 +1,63 @@
+name: Build & Deploy Freight Service
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2️⃣ Set up JDK 21
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      # 3️⃣ Build with Maven
+      - name: Build Freight Service JAR
+        run: |
+          mvn clean package -DskipTests
+          cp target/*.jar app.jar
+
+      # 4️⃣ Clean old jar on VPS
+      - name: Clean old jar on VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PWD }}
+          script: |
+            echo "🧹 Cleaning old app.jar..."
+            sudo rm -f /srv/tsa/freight-service/app.jar
+            sudo mkdir -p /srv/tsa/freight-service
+
+      # 5️⃣ Upload new jar directly to /srv/tsa/freight-service/app.jar
+      - name: Upload JAR via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PWD }}
+          source: "app.jar"
+          target: "/srv/tsa/freight-service/app.jar"
+
+      # 6️⃣ Restart service
+      - name: Restart freight-service
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PWD }}
+          script: |
+            echo "♻️ Restarting freight-service..."
+            sudo systemctl restart freight-service
+            sleep 5
+            sudo systemctl status freight-service --no-pager | head -n 20
