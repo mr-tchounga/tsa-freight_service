@@ -34,6 +34,7 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_PWD }}
+          port: 22
           script: |
             echo "🧹 Cleaning old app.jar..."
             sudo rm -f /srv/tsa/freight-service/app.jar
