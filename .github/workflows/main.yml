@@ -36,8 +36,8 @@ jobs:
           password: ${{ secrets.SERVER_PWD }}
           script: |
             echo "🧹 Cleaning old app.jar..."
-            # sudo rm -f /srv/tsa/freight-service/app.jar
-            # sudo mkdir -p /srv/tsa/freight-service
+            sudo rm -f /srv/tsa/freight-service/app.jar
+            sudo mkdir -p /srv/tsa/freight-service
 
       # 5️⃣ Upload new jar directly to /srv/tsa/freight-service/app.jar 
       - name: Upload JAR via SCP
