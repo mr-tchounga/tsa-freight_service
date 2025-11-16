@@ -21,7 +21,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuthServiceClient {
 
-    @Value("${auth.base-url:http://localhost:8086}")
+    @Value("${auth.base-url:http://localhost:30016}")
     private String authBaseUrl;
     WebClient webClient = WebClient.builder().baseUrl(authBaseUrl).build();
     private final Utils utils;        // <--- make final so Lombok injects it
