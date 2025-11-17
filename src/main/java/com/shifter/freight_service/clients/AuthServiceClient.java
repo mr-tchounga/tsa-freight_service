@@ -75,7 +75,7 @@ public class AuthServiceClient {
         } catch (WebClientResponseException ex) {
             throw new RemoteAuthException("Auth service error: " + utils.jsonExtractMessage(ex.getResponseBodyAsString()), ex);
         } catch (Exception ex) {
-            throw new RemoteAuthException("Failed to call Auth service", ex);
+            throw new RemoteAuthException("Failed to call Auth service: " + authBaseUrl, ex);
         }
     }
 
