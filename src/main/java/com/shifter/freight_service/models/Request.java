@@ -17,6 +17,16 @@ public class Request extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(unique = true, updatable = false)
+    private String sn;
+    @PrePersist
+    private void prePersistSN() {
+        if (this.sn == null) {
+            this.sn = "SN" + String.format("%08d", (long) (Math.random() * 1_0000_0000L));
+        }
+    }
+
 //    @Column(name = "transporter_id")
 //    private Long transporterId;
     @Column(nullable = false)
