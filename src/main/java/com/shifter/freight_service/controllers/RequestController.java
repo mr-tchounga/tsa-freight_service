@@ -80,6 +80,10 @@ public class RequestController {
     @PatchMapping("/{id}/reject")
     public Object rejectRequest(@RequestHeader("Authorization") String authHeader, @PathVariable Long id) {
         AuthUserResponse user = client.getCurrentUser(authHeader);
+        if (!user.getRole().getName().equals("TRANSPORTEUR")) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+                    "error", "Only TRANSPORTERS are allowed to perform action"));
+        }
 
         Optional<Request> request = entityInterface.findEntityById(id, user);
         if  (request.isPresent()) {
@@ -95,6 +99,10 @@ public class RequestController {
     @PatchMapping("/{id}/accept")
     public Object acceptRequest(@RequestHeader("Authorization") String authHeader, @PathVariable Long id, @RequestBody List<Vehicle> vehicles) {
         AuthUserResponse user = client.getCurrentUser(authHeader);
+        if (!user.getRole().getName().equals("TRANSPORTEUR")) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+                    "error", "Only TRANSPORTERS are allowed to perform action"));
+        }
 
         Optional<Request> request = entityInterface.findEntityById(id, user);
         if  (request.isPresent()) {
@@ -116,6 +124,10 @@ public class RequestController {
     @PatchMapping("/{id}/negotiate")
     public Object negotiateRequest(@RequestHeader("Authorization") String authHeader, @PathVariable Long id, @RequestBody BigDecimal amount, @RequestBody List<Vehicle> vehicles) {
         AuthUserResponse user = client.getCurrentUser(authHeader);
+        if (!user.getRole().getName().equals("TRANSPORTEUR")) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+                    "error", "Only TRANSPORTERS are allowed to perform action"));
+        }
 
         Optional<Request> request = entityInterface.findEntityById(id, user);
         if  (request.isPresent()) {
