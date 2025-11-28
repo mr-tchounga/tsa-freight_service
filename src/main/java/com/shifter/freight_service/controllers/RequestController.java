@@ -1,7 +1,7 @@
 package com.shifter.freight_service.controllers;
 
 import com.shifter.freight_service.clients.AuthServiceClient;
-import com.shifter.freight_service.models.Request;
+import com.shifter.freight_service.models.*;
 import com.shifter.freight_service.payloads.responses.AuthUserResponse;
 import com.shifter.freight_service.services.EntityInterface;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +9,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/request")
@@ -20,6 +23,8 @@ public class RequestController {
     private AuthServiceClient client;
     @Autowired
     private EntityInterface<Request> entityInterface;
+    @Autowired
+    private EntityInterface<Offer> offerInterface;
 
     @GetMapping( {"{id}", ""} )
     public ResponseEntity<Object> getRequest(@RequestHeader("Authorization") String authHeader, @PathVariable(required = false) Long id) {
@@ -70,5 +75,62 @@ public class RequestController {
         entityInterface.deleteEntity(user, id);
         return ResponseEntity.ok("Operation successful");
     }
+
+
+    @PatchMapping("/{id}/reject")
+    public Object rejectRequest(@RequestHeader("Authorization") String authHeader, @PathVariable Long id) {
+        AuthUserResponse user = client.getCurrentUser(authHeader);
+
+        Optional<Request> request = entityInterface.findEntityById(id, user);
+        if  (request.isPresent()) {
+            if (!request.get().getNotInterestUserIds().contains(user.getId())) {
+                request.get().getNotInterestUserIds().add(user.getId());
+            }
+            return entityInterface.updateEntity(user, request.get());
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Request with id " + id + " not found"));
+        }
+    }
+
+    @PatchMapping("/{id}/accept")
+    public Object acceptRequest(@RequestHeader("Authorization") String authHeader, @PathVariable Long id, @RequestBody List<Vehicle> vehicles) {
+        AuthUserResponse user = client.getCurrentUser(authHeader);
+
+        Optional<Request> request = entityInterface.findEntityById(id, user);
+        if  (request.isPresent()) {
+            Offer offer = Offer.builder()
+                    .request(request.get())
+                    .amount(request.get().getAmount())
+                    .status(OfferStatus.ACCEPTED)
+                    .createdBy(user.getId())
+                    .vehicles(vehicles)
+                    .build();
+            offerInterface.addEntity(user, offer);
+            request.get().setStatus(RequestStatus.ASSIGNED);
+            return entityInterface.updateEntity(user, request.get());
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Request with id " + id + " not found"));
+        }
+    }
+
+    @PatchMapping("/{id}/negotiate")
+    public Object negotiateRequest(@RequestHeader("Authorization") String authHeader, @PathVariable Long id, @RequestBody BigDecimal amount, @RequestBody List<Vehicle> vehicles) {
+        AuthUserResponse user = client.getCurrentUser(authHeader);
+
+        Optional<Request> request = entityInterface.findEntityById(id, user);
+        if  (request.isPresent()) {
+            Offer offer = Offer.builder()
+                    .request(request.get())
+                    .amount(amount)
+                    .createdBy(user.getId())
+                    .vehicles(vehicles)
+                    .build();
+            offer.setRequest(request.get());
+            return offerInterface.addEntity(user, offer);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Request with id " + id + " not found"));
+        }
+    }
+
 
 }

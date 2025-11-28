@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -68,6 +69,8 @@ public class Request extends BaseEntity {
 
     @OneToMany(mappedBy = "request", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Offer> offers;
+
+    private List<Long> notInterestUserIds = new ArrayList<>();
 
     @Version
     private Long version; // optimistic locking to avoid double assignment
