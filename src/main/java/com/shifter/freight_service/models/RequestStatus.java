@@ -4,8 +4,8 @@ public enum RequestStatus {
     OPENED,
     UNDER_NEGOTIATION,
     ASSIGNED,
-    PROCESSING,
     IN_PROGRESS,
     COMPLETED,
-    REFUNDED
+    REFUNDED,
+    CANCELLED
 }

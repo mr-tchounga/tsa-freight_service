@@ -20,9 +20,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/api/v1/ws")
                 .addInterceptors(authHandshakeInterceptor)
-                .setAllowedOrigins("*");
+                .setAllowedOriginPatterns("*")
 //                .setAllowedOrigins("*")
-//                .withSockJS();
+                .withSockJS().setSessionCookieNeeded(false);
     }
 
     @Override

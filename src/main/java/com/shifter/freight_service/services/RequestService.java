@@ -1,6 +1,7 @@
 package com.shifter.freight_service.services;
 
 import com.shifter.freight_service.models.Request;
+import com.shifter.freight_service.models.RequestStatus;
 import com.shifter.freight_service.payloads.responses.AuthUserResponse;
 import com.shifter.freight_service.repositories.RequestRepository;
 import com.shifter.freight_service.utils.Utils;
@@ -51,6 +52,12 @@ public class RequestService implements EntityInterface<Request> {
         Map<String, Object> nonNullElements = utils.getNonNullProperties(Request.class, entity);
         if (!user.getRole().getName().equals("ADMIN")) {
             nonNullElements.put("isVisible", true);
+        } else {
+            nonNullElements.remove("isVisible");
+            nonNullElements.remove("active");
+        }
+        if (user.getRole().getName().equals("AFFRETEUR")) {
+            nonNullElements.remove("notInterestUserIds");
         }
         return utils.findAllByCustomQuery(nonNullElements, Request.class);
     }
@@ -83,12 +90,16 @@ public class RequestService implements EntityInterface<Request> {
 
     @Override
     public Request updateEntity(AuthUserResponse user, Request entity) {
-        Optional<Request> previousEntity = requestRepository.findById(entity.getId());
         if (!(user.getRole().getName().equals("ADMIN") || user.getRole().getName().equals("AFFRETEUR"))) {
             throw new RuntimeException("Only ADMIN and FREIGHTERS are allowed to perform this operation");
         }
+        Optional<Request> previousEntity = requestRepository.findById(entity.getId());
 
         if (previousEntity.isPresent()) {
+            if (user.getRole().getName().equals("AFFRETEUR")
+                    && !previousEntity.get().getStatus().equals(RequestStatus.OPENED)) {
+                throw new RuntimeException("Only opened requests can be updated");
+            }
             previousEntity.get().setUpdatedBy(user.getId());
             previousEntity.get().setUpdatedAt(Calendar.getInstance().getTime());
             Map<String, Object> nonNullElements = utils.getNonNullProperties(Request.class, entity);

@@ -21,12 +21,6 @@ public class Request extends BaseEntity {
 
     @Column(unique = true, updatable = false)
     private String sn;
-    @PrePersist
-    private void prePersistSN() {
-        if (this.sn == null) {
-            this.sn = "SN" + String.format("%08d", (long) (Math.random() * 1_0000_0000L));
-        }
-    }
 
 //    @Column(name = "transporter_id")
 //    private Long transporterId;
@@ -58,7 +52,7 @@ public class Request extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private RequestStatus status = RequestStatus.OPENED;
+    private RequestStatus status;
 
     @OneToMany(mappedBy = "request", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
@@ -75,4 +69,15 @@ public class Request extends BaseEntity {
     @Version
     private Long version; // optimistic locking to avoid double assignment
 
+
+
+    @PrePersist
+    private void prePersistSN() {
+        if (this.sn == null) {
+            this.sn = "SN" + String.format("%08d", (long) (Math.random() * 1_0000_0000L));
+        }
+        if (this.status == null) {
+            this.status = RequestStatus.OPENED;
+        }
+    }
 }
