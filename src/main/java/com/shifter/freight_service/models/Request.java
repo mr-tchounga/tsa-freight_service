@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import java.math.BigDecimal;
+import java.security.Timestamp;
+import java.sql.Time;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,6 +68,9 @@ public class Request extends BaseEntity {
     private List<Offer> offers;
 
     private List<Long> notInterestUserIds = new ArrayList<>();
+
+    @Column(name = "eta", columnDefinition = "TIME")
+    private LocalTime eta;
 
     @Version
     private Long version; // optimistic locking to avoid double assignment

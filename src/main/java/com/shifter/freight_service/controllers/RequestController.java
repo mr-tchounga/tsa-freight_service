@@ -10,9 +10,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/request")
@@ -25,6 +27,8 @@ public class RequestController {
     private EntityInterface<Request> entityInterface;
     @Autowired
     private EntityInterface<Offer> offerInterface;
+    @Autowired
+    private EntityInterface<Vehicle> vehicleInterface;
 
     @GetMapping( {"{id}", ""} )
     public ResponseEntity<Object> getRequest(@RequestHeader("Authorization") String authHeader, @PathVariable(required = false) Long id) {
@@ -34,6 +38,28 @@ public class RequestController {
             return ResponseEntity.ok(entityInterface.findAllEntity(user));
         }
         return ResponseEntity.ok(entityInterface.findEntityById(id, user));
+    }
+
+    @GetMapping( "/available" )
+    public ResponseEntity<Object> getAvailableRequest(@RequestHeader("Authorization") String authHeader) {
+        AuthUserResponse user = client.getCurrentUser(authHeader);
+
+        List<Request> requests = entityInterface.findAllEntity(user);
+        return ResponseEntity.ok(requests.stream()
+                .filter((request -> request.getStatus().equals(RequestStatus.OPENED)
+                            && !request.getNotInterestUserIds().contains(user.getId()))));
+    }
+    @GetMapping( "/active" )
+    public ResponseEntity<Object> getActiveRequest(@RequestHeader("Authorization") String authHeader) {
+        AuthUserResponse user = client.getCurrentUser(authHeader);
+
+        List<Request> requests = entityInterface.findAllEntity(user);
+        return ResponseEntity.ok(requests.stream()
+                .filter((request -> request.getStatus().equals(RequestStatus.ASSIGNED)
+                        || request.getStatus().equals(RequestStatus.IN_PROGRESS)
+//                        && request.getOffers().stream()
+//                        .filter((offer -> offer.getCreatedBy().equals(user.getId())))
+                        && !request.getNotInterestUserIds().contains(user.getId()))));
     }
 
     @PostMapping
@@ -97,24 +123,41 @@ public class RequestController {
     }
 
     @PatchMapping("/{id}/accept")
-    public Object acceptRequest(@RequestHeader("Authorization") String authHeader, @PathVariable Long id, @RequestBody List<Vehicle> vehicles) {
+    public Object acceptRequest(@RequestHeader("Authorization") String authHeader, @PathVariable Long id) {
         AuthUserResponse user = client.getCurrentUser(authHeader);
-        if (!user.getRole().getName().equals("TRANSPORTEUR")) {
+        if (!user.getRole().getName().equals("TRANSPORTEUR") && !user.getRole().getName().equals("ADMIN")) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
-                    "error", "Only TRANSPORTERS are allowed to perform action"));
+                    "error", "Only TRANSPORTERS & ADMINS are allowed to perform action"));
         }
 
+        List<Vehicle> userVehicles = vehicleInterface.findAllEntity(user);
+        if (userVehicles.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                    "error", "Aucun véhicule associé à votre compte de dispo"
+            ));
+        }
         Optional<Request> request = entityInterface.findEntityById(id, user);
         if  (request.isPresent()) {
+            List<Offer> offers = request.get().getOffers().stream()
+                    .filter(offer -> user.getId().equals(offer.getCreatedBy()))
+                    .toList();
+            if (!offers.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+                        "error", "You suscribed already!"
+                ));
+            }
             Offer offer = Offer.builder()
                     .request(request.get())
                     .amount(request.get().getAmount())
                     .status(OfferStatus.ACCEPTED)
                     .createdBy(user.getId())
-                    .vehicles(vehicles)
+                    .vehicles(userVehicles)
                     .build();
             offerInterface.addEntity(user, offer);
             request.get().setStatus(RequestStatus.ASSIGNED);
+            offers = new ArrayList<>();
+            offers.add(offer);
+            request.get().setOffers(offers);
             return entityInterface.updateEntity(user, request.get());
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Request with id " + id + " not found"));

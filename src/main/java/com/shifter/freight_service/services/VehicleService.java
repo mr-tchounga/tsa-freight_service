@@ -45,7 +45,7 @@ public class VehicleService implements EntityInterface<Vehicle> {
         Vehicle entity = new Vehicle();
         entity.setVisible(true);
         if (!user.getRole().getName().equals("ADMIN")) {
-            entity.setOwnerId(user.getId());
+            entity.setTransporterId(user.getId());
         }
         Map<String, Object> nonNullElements = utils.getNonNullProperties(Vehicle.class, entity);
         if (!user.getRole().getName().equals("ADMIN")) {

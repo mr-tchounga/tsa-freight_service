@@ -20,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -41,6 +42,17 @@ public class VehicleController {
             return ResponseEntity.ok(entityInterface.findAllEntity(user));
         }
         return ResponseEntity.ok(entityInterface.findEntityById(id, user));
+    }
+
+    @GetMapping( "/user" )
+    public ResponseEntity<Object> getUSerVehicles(@RequestHeader("Authorization") String authHeader) {
+        AuthUserResponse user = client.getCurrentUser(authHeader);
+
+        if (!user.getRole().getName().equals("TRANSPORTEUR") && !user.getRole().getName().equals("ADMIN")) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+                    "error", "Only TRANSPORTERS & ADMINS are allowed to perform action"));
+        }
+        return ResponseEntity.ok(entityInterface.findAllEntity(user));
     }
 
     @PostMapping

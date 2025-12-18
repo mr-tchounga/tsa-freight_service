@@ -59,6 +59,7 @@ public class RequestService implements EntityInterface<Request> {
         if (user.getRole().getName().equals("AFFRETEUR")) {
             nonNullElements.remove("notInterestUserIds");
         }
+//        nonNullElements.remove("notInterestUserIds");
         return utils.findAllByCustomQuery(nonNullElements, Request.class);
     }
 
@@ -90,9 +91,9 @@ public class RequestService implements EntityInterface<Request> {
 
     @Override
     public Request updateEntity(AuthUserResponse user, Request entity) {
-        if (!(user.getRole().getName().equals("ADMIN") || user.getRole().getName().equals("AFFRETEUR"))) {
-            throw new RuntimeException("Only ADMIN and FREIGHTERS are allowed to perform this operation");
-        }
+//        if (!(user.getRole().getName().equals("ADMIN") || user.getRole().getName().equals("AFFRETEUR"))) {
+//            throw new RuntimeException("Only ADMIN and FREIGHTERS are allowed to perform this operation");
+//        }
         Optional<Request> previousEntity = requestRepository.findById(entity.getId());
 
         if (previousEntity.isPresent()) {
